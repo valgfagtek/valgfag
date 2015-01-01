@@ -1,0 +1,58 @@
+<script language="JavaScript" type="text/javascript" src="shared/cryptico/jsbn.js"></script>
+<script language="JavaScript" type="text/javascript" src="shared/cryptico/random.js"></script>
+<script language="JavaScript" type="text/javascript" src="shared/cryptico/hash.js"></script>
+<script language="JavaScript" type="text/javascript" src="shared/cryptico/rsa.js"></script>
+<script language="JavaScript" type="text/javascript" src="shared/cryptico/aes.js"></script>
+<script language="JavaScript" type="text/javascript" src="shared/cryptico/api.js"></script>
+<script language="JavaScript" type="text/javascript" src="shared/cryptico/cryptico.js"></script>
+
+<script type="text/javascript">
+	var backup = $('#container').html();
+	var user = "";
+	var key;
+	function messageClicked(id){
+		backup = $('#container').html();
+		$('#container').html("Loading message with ID: "+id);
+		$.get("messages.php?id="+id, function(data) {
+			$("#container").html(decryptMessage(data)+"<br><br><a href='javascript:backToInbox()'>Back to Inbox</a>");
+		});
+	}
+	
+	function newMessage(){
+	    backup = $('#container').html();
+		$("#container").load("html/composeMessage.html");
+	}
+	
+	function backToInbox(){
+		$('#container').html(backup);
+	}
+	
+	function retrieveUsername(username){
+		user = String(username).toLowerCase();
+	}
+	
+	function decryptMessage(msg){
+		key = cryptico.privateKeyFromString(localStorage.getItem('Private_Key_'+user));
+		var result = cryptico.decrypt(msg, key);
+		// Unset variable key for security purposes... //
+		key = "";
+		return result.plaintext;
+	}
+	
+	function decryptTitle(msg, id){
+		$('#'+id+' messageTitle').replaceWith("<messageTitle>"+decryptMessage(msg)+"</messageTitle>");
+	}
+</script>
+
+<div id="container">
+    <!-- New message -->
+    <div id="sendButton" onClick="newMessage()">New Message</div>
+
+	<!-- HEADER -->
+    <div id="header">
+        <sender>Sender:</sender>
+        <messageTitle>Title:</messageTitle>
+        <dateTime>Date & Time:</dateTime>
+    </div>
+    
+    <!-- DIV is closed automatically by PHP script -->

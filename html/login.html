@@ -1,0 +1,147 @@
+
+	<script language="JavaScript" type="text/javascript" src="shared/cryptico/jsbn.js"></script>
+    <script language="JavaScript" type="text/javascript" src="shared/cryptico/random.js"></script>
+    <script language="JavaScript" type="text/javascript" src="shared/cryptico/hash.js"></script>
+    <script language="JavaScript" type="text/javascript" src="shared/cryptico/rsa.js"></script>
+    <script language="JavaScript" type="text/javascript" src="shared/cryptico/aes.js"></script>
+    <script language="JavaScript" type="text/javascript" src="shared/cryptico/api.js"></script>
+    <script language="JavaScript" type="text/javascript" src="shared/cryptico/cryptico.js"></script>
+
+
+    
+    
+    <script>
+		function randomString(length, chars) {
+			var mask = '';
+			if (chars.indexOf('a') > -1) mask += 'abcdefghijklmnopqrstuvwxyz';
+			if (chars.indexOf('A') > -1) mask += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+			if (chars.indexOf('#') > -1) mask += '0123456789';
+			if (chars.indexOf('!') > -1) mask += '~`!@#$%^&*()_+-={}[]:";\'<>?,./|\\';
+			var result = '';
+			for (var i = length; i > 0; --i) result += mask[Math.round(Math.random() * (mask.length - 1))];
+			return result;
+		}
+		
+		function generateKeys(){
+			var PassPhrase = randomString(1024, 'aA#!');
+			var Bits = 1024;
+        
+			var PrivateKey = cryptico.generateRSAKey(PassPhrase, Bits);
+			var PublicKey = cryptico.publicKeyString(PrivateKey);
+			
+			return [PrivateKey, PublicKey];
+		}
+	</script>
+	
+	<script type="text/javascript">
+	        var storeBody = "";
+			function returnDisplay(){document.body.innerHTML=storeBody;}
+			function stopDisplay(){document.body.innerHTML='<div style="color: #000000;"><h1>Your webbrowser is too small to display this page</h1></div>';}
+			function checkSize(){
+			    var e=window.innerWidth;
+			    var t=window.innerHeight;
+			    if(800>e||630>t){
+			        stopDisplay();
+			    } else {
+			        returnDisplay();
+			    }
+			}
+			
+			window.addEventListener('resize', checkSize);
+    </script>
+<script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/sha512.js"></script>
+
+<script type="text/javascript">
+	function checkColor(obj) {
+		if (obj.value === "") {
+			if (obj.name === "password") {
+				obj.type = "text";
+			}
+			obj.id = "defaultInput";
+		}
+	}
+
+	function setColor(obj) {
+		if (obj.name === "password") {
+			obj.type = "password";
+		}
+		obj.id = "fixedInput";
+	}
+	
+	function checkValue(obj, text) {
+		if (obj.value === text) {
+			obj.value = "";
+			setColor(obj);
+		} else {
+			if (obj.value === "") {
+				checkColor(obj);
+				obj.value = text;
+			}
+		}
+	}
+			
+	function formSubmit(choice) {
+		var user = document.getElementsByName("username")[0];
+		var pass = document.getElementsByName("password")[0];
+		var pub = document.getElementsByName("pubkey")[0];
+		var msg = document.getElementsByName("message")[0];
+		var privKey;
+		var pubKey;
+		if (user.value === "Username") {
+			user.value = "";
+		}
+		
+		if (pass.value === "Password") {
+			pass.value = "";
+		}
+		
+		if(user.value === "" || pass.value === "") {
+			return false;
+		}
+		
+		pass.value = CryptoJS.SHA512(pass.value);
+		
+		if(choice == 1) {
+			document.forms["userpass"].action = "login.php";
+		} else {
+			keyPair = generateKeys();
+			privKey = keyPair[0];
+			pubKey = keyPair[1];
+			pub.value = pubKey;
+			user = String(user.value).toLowerCase();
+			var cacheKey = cryptico.privateKeyString(privKey);
+			localStorage.setItem('Private_Key_'+user,cacheKey);
+			document.forms["userpass"].action = "register.php";
+			var encrypted = cryptico.encrypt("Welcome to this site!", pubKey)
+			msg.value = encrypted.cipher;
+		}
+		
+		document.forms["userpass"].submit();
+	}
+	
+	function onTextboxKeyPress(e){
+	    if(e.keyCode == 13){
+	        formSubmit(1);
+	    }
+	}
+</script>
+
+
+<p><font size="10"><font face="verdana" color="black">WELCOME TO SAFECHAT</font></font></p>
+
+<div id="header">
+	<windowTitle>Login / Register</windowTitle>
+</div>
+
+<div id="container" style="height: 300px;">
+	<form method="POST" id="userpass" action="login.php">
+		<INPUT TYPE = "text" VALUE ="Username" NAME = "username" id="defaultInput" onblur="checkValue(this, 'Username')"  onfocus="checkValue(this, 'Username')" size="19%" onkeypress="onTextboxKeyPress(event)"><br>
+		<INPUT TYPE = "text" VALUE ="Password" NAME = "password" id="defaultInput" onblur="checkValue(this, 'Password')"  onfocus="checkValue(this, 'Password')" size="19%" onkeypress="onTextboxKeyPress(event)"><br>
+		<INPUT TYPE = "hidden" VALUE="" NAME ="pubkey">
+		<INPUT TYPE = "hidden" VALUE="" NAME ="message">
+	</form>
+	<input type="button" id="submit" value="Login" onClick="formSubmit(1)"/> 
+	<input type="button" value="Register" onClick="formSubmit(0)"/>
+</div>
+<p><font size="5"><font face="verdana" color="black">we need cookies to work :)</font></font></p>
+<script>storeBody = document.body.innerHTML; checkSize();</script>

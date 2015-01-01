@@ -1,0 +1,62 @@
+<script language="JavaScript" type="text/javascript" src="shared/cryptico/jsbn.js"></script>
+<script language="JavaScript" type="text/javascript" src="shared/cryptico/random.js"></script>
+<script language="JavaScript" type="text/javascript" src="shared/cryptico/hash.js"></script>
+<script language="JavaScript" type="text/javascript" src="shared/cryptico/rsa.js"></script>
+<script language="JavaScript" type="text/javascript" src="shared/cryptico/aes.js"></script>
+<script language="JavaScript" type="text/javascript" src="shared/cryptico/api.js"></script>
+<script language="JavaScript" type="text/javascript" src="shared/cryptico/cryptico.js"></script>
+<script language="JavaScript" type="text/javascript" src="shared/cryptico/jsbn.js"></script>
+
+<script>
+	var key = "";
+
+	function encryptMessage(msg){
+		return cryptico.encrypt(msg, key);
+	}
+	
+	function getUserKey(user){
+		return $.get("key.php?u="+user, function(data) {
+			key = data;
+			sendForm();
+		});
+	}
+	
+	function formSubmit()  {
+		var user = document.getElementsByName("receipent")[0];
+		var subject = document.getElementsByName("subject")[0];
+		var msg = document.getElementById("message");
+		getUserKey(user.value);
+	}
+	
+	function sendForm() {
+		var subject = document.getElementsByName("subject")[0];
+		var msg = document.getElementById("message");
+		msg.value = encryptMessage(msg.value).cipher;
+		subject.value = encryptMessage(subject.value).cipher;
+		
+		document.forms["msgform"].submit();
+	}
+	
+	function onTextboxKeyPress(e){
+	    if(e.keyCode == 13){
+	        formSubmit();
+	    }
+	}
+</script>
+
+<style>color: #000000;</style>
+
+<div id="container" style="height: 300px;">
+	<form method="POST" id="msgform" action="messagehandler.php">
+
+		Receipent:<br>
+		<INPUT TYPE = "text" VALUE = "" NAME = "receipent" size="12%" onkeypress="onTextboxKeyPress(event)"><br>
+		Subject:<br>
+		<INPUT TYPE = "text" VALUE = "" NAME = "subject" size="12%" onkeypress="onTextboxKeyPress(event)"><br>
+		Message:<br>
+		<textarea ID="message" value="" NAME = "message"></textarea>
+	</form>
+ 	<input type="button" value="Send" onClick="formSubmit()"/>
+</div>
+
+<br><br><a href='javascript:backToInbox()'>Back to Inbox</a>
